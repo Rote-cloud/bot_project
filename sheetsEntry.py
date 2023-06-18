@@ -2,7 +2,6 @@ import gspread
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
-from actionDB import ActionDB
 from setting import CRED
 
 class SheetsEntry:
@@ -22,7 +21,7 @@ class SheetsEntry:
         self.service = build('sheets', 'v4', credentials=self.credentials)
         self.client = gspread.authorize(self.credentials)
 
-    def data_entry(self, df, user_name):
+    def data_entry(self, df, user_name, db):
         spreadsheet_details = {
             'properties': {
                 'title': 'weather_' + user_name
@@ -36,6 +35,6 @@ class SheetsEntry:
 
         spreadsheet = self.service.spreadsheets().get(spreadsheetId=sheetId).execute()
         url = spreadsheet['spreadsheetUrl']
-        db = ActionDB().add(user_name, url)
+        db.add(user_name, url)
 
         return url

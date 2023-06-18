@@ -8,12 +8,13 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from weather import Weather
 from sheetsEntry import SheetsEntry
-from actionDB import ActionDB
+from actionDB import ActionRepository
 from setting import TOKEN
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 cb = CallbackData("button", "action")
+db = ActionRepository()
 
 async def setup_bot_commands(bot):
     bot_commands = [
@@ -70,7 +71,7 @@ async def weather_few_days_command(message: types.Message):
 
 @dp.message_handler(Text("Вывод всех ссылок с прогнозами"))
 async def value_output(message: types.Message):
-    values = ActionDB().value_output(message.from_user.username)
+    values = db.value_output(message.from_user.username)
     if len(values) == 0:
         await message.answer("В базе данных пока нет ваших записей.\n"
                              "Воспользуйтесь сначала 2 или 3 функцией")
@@ -92,10 +93,13 @@ async def future_forecast(callback: types.CallbackQuery):
 
 def get_url_sheets(df, user_name):
     sheets = SheetsEntry()
-    url = sheets.data_entry(df, user_name)
+    url = sheets.data_entry(df, user_name, db)
 
     return url
 
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)
+    try:
+        executor.start_polling(dp, skip_updates=True)
+    finally:
+        db.closeDB()
 
